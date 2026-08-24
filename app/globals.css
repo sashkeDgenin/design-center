@@ -1,0 +1,71 @@
+@import "tailwindcss";
+
+/*
+ * Designed at 390px, one thumb, standing on a shop floor under shop lighting.
+ * High contrast, large tap targets, no hover-dependent affordances.
+ * No dark mode: the spec rules out the toggle, and a single confident theme reads
+ * better in a showroom than a half-tested second one.
+ */
+@theme {
+  --color-ink: #16181d;
+  --color-ink-soft: #5b6070;
+  --color-ink-faint: #8b90a0;
+  --color-page: #f5f6f8;
+  --color-card: #ffffff;
+  --color-line: #e3e5ea;
+
+  --color-brand: #2f5fe0;
+  --color-brand-dark: #1e3fa8;
+
+  /* photos_in. Loud on purpose: this is the gap the whole app exists to close. */
+  --color-blocked: #d92d20;
+  --color-blocked-bg: #fef3f2;
+  --color-overdue: #b54708;
+  --color-overdue-bg: #fffaeb;
+  --color-whatsapp: #1da851;
+  --color-whatsapp-dark: #14803c;
+
+  --radius-card: 14px;
+}
+
+html,
+body {
+  background: var(--color-page);
+  color: var(--color-ink);
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+    "Helvetica Neue", "Noto Sans Hebrew", "Arial Hebrew", Arial, sans-serif;
+  /* Home-screen app: never bounce like a web page. */
+  overscroll-behavior-y: none;
+}
+
+/* Respect the iPhone notch and home indicator when launched from the home screen. */
+.safe-top { padding-top: env(safe-area-inset-top); }
+.safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
+
+/*
+ * Every tap target clears 44px, the smallest thing a thumb hits reliably.
+ */
+@utility tap {
+  min-height: 44px;
+  min-inline-size: 44px;
+}
+
+/* Inputs at 16px or larger, otherwise iOS zooms the whole page on focus. */
+input,
+select,
+textarea {
+  font-size: 16px;
+}
+
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+button:focus-visible,
+a:focus-visible {
+  outline: 2px solid var(--color-brand);
+  outline-offset: 2px;
+}
