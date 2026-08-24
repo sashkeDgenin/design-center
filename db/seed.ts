@@ -50,10 +50,16 @@ type SeedLead = {
  * Eight leads spread across all six stages, so the app looks like a working day the
  * first time it opens. Dates are relative to today, which keeps the seed useful no
  * matter when it is run.
+ *
+ * Every number is +9720000000NN on purpose. A realistic-looking Israeli mobile is
+ * somebody's actual number, and one tap of Send on a demo lead would open WhatsApp
+ * to a stranger. 0000 is not an allocated prefix, so wa.me refuses it instead.
+ *
+ * Clear these before real use: `npm run db:clear`.
  */
 const SEED_LEADS: SeedLead[] = [
   {
-    name: "Dana", phoneRaw: "054-231-8890", phone: "+972542318890",
+    name: "Dana", phoneRaw: "054-000-0001", phone: "+972000000001",
     stage: "nudge", source: "walkout", language: "he",
     interest: "3-seat Milano, grey fabric", quotedPrice: 8900,
     objection: "Wants to measure the living room wall first",
@@ -65,7 +71,7 @@ const SEED_LEADS: SeedLead[] = [
     ],
   },
   {
-    name: "Yossi", phoneRaw: "0503117742", phone: "+972503117742",
+    name: "Yossi", phoneRaw: "050-000-0002", phone: "+972000000002",
     stage: "nudge", source: "walkout", language: "he",
     interest: "Recliner armchair, brown leather", quotedPrice: 4200,
     objection: "Price. Said he saw something similar cheaper online.",
@@ -77,7 +83,7 @@ const SEED_LEADS: SeedLead[] = [
     ],
   },
   {
-    name: "Marina", phoneRaw: "+972 52 884 1200", phone: "+972528841200",
+    name: "Marina", phoneRaw: "052-000-0003", phone: "+972000000003",
     stage: "awaiting_photos", source: "phone_tradein", language: "ru",
     interest: "Trade-in against a corner sofa", quotedPrice: null,
     objection: "",
@@ -89,7 +95,7 @@ const SEED_LEADS: SeedLead[] = [
     ],
   },
   {
-    name: "Avi", phoneRaw: "052-770-3391", phone: "+972527703391",
+    name: "Avi", phoneRaw: "052-000-0004", phone: "+972000000004",
     stage: "photos_in", source: "phone_tradein", language: "he",
     interest: "Trade-in, 5-year-old 3-seater", quotedPrice: null,
     objection: "",
@@ -102,7 +108,7 @@ const SEED_LEADS: SeedLead[] = [
     ],
   },
   {
-    name: "Tanya", phoneRaw: "0587764410", phone: "+972587764410",
+    name: "Tanya", phoneRaw: "058-000-0005", phone: "+972000000005",
     stage: "photos_in", source: "phone_tradein", language: "ru",
     interest: "Trade-in, leather 2-seater plus armchair", quotedPrice: null,
     objection: "",
@@ -114,7 +120,7 @@ const SEED_LEADS: SeedLead[] = [
     ],
   },
   {
-    name: "Sarah", phoneRaw: "+972 54 990 2277", phone: "+972549902277",
+    name: "Sarah", phoneRaw: "054-000-0006", phone: "+972000000006",
     stage: "schedule_meeting", source: "phone_website", language: "en",
     interest: "Sectional plus ottoman, cream", quotedPrice: 12400,
     objection: "",
@@ -127,7 +133,7 @@ const SEED_LEADS: SeedLead[] = [
     ],
   },
   {
-    name: "Eitan", phoneRaw: "053-448-1109", phone: "+972534481109",
+    name: "Eitan", phoneRaw: "053-000-0007", phone: "+972000000007",
     stage: "get_back_later", source: "walkin", language: "he",
     interest: "Dining set, 6 chairs, oak", quotedPrice: 6300,
     objection: "Moving apartment in March, nowhere to put it until then",
@@ -139,7 +145,7 @@ const SEED_LEADS: SeedLead[] = [
     ],
   },
   {
-    name: "Rami", phoneRaw: "050-661-0043", phone: "+972506610043",
+    name: "Rami", phoneRaw: "050-000-0008", phone: "+972000000008",
     stage: "poopy", source: "walkout", language: "he",
     interest: "Queen bed frame", quotedPrice: 3100,
     objection: "Bought elsewhere",

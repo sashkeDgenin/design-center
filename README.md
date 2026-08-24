@@ -87,6 +87,27 @@ scripts would read only `.env`, so a value put in `.env.local` would work in
 
 `npm test` runs the cadence, quiet-hours, phone and template unit tests.
 
+## The eight seeded leads are fake
+
+Dana, Yossi, Marina, Avi, Tanya, Sarah, Eitan and Rami do not exist. They are there
+so the Today screen has something to show on the first run, and they cover all six
+stages so every part of the app is visible immediately.
+
+Their phone numbers are all `+9720000000NN`. That is deliberate: a realistic-looking
+Israeli mobile is somebody's real number, and one tap of Send on a demo lead would
+open WhatsApp to a stranger. `0000` is not an allocated prefix, so wa.me refuses it.
+
+When you are ready for real leads:
+
+```bash
+npm run db:clear -- --yes
+```
+
+That deletes every lead and its history, and keeps your settings and your 33 message
+templates, which are configuration rather than demo data. It refuses to run without
+`--yes`, and there is no undo, so export first from `/api/export/json` if you want a
+copy.
+
 ## Picking a Neon region
 
 **A Neon project's region cannot be changed after it is created**, so this is the one

@@ -11,7 +11,8 @@
     "db:migrate": "tsx db/migrate.ts",
     "db:seed": "tsx db/seed.ts",
     "db:reset": "tsx db/seed.ts --reset",
-    "test": "tsx --test lib/*.test.ts"
+    "test": "tsx --test lib/*.test.ts",
+    "db:clear": "tsx db/clear.ts"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.1.0",
