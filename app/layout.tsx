@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { getSettings } from "@/lib/queries";
+import { ServiceWorker } from "@/components/service-worker";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -26,7 +27,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const { uiDirection } = await getSettings();
   return (
     <html lang="en" dir={uiDirection === "rtl" ? "rtl" : "ltr"}>
-      <body className="antialiased">{children}</body>
+      <body className="antialiased">
+        {children}
+        <ServiceWorker />
+      </body>
     </html>
   );
 }

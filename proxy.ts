@@ -31,6 +31,6 @@ export const config = {
     /*
      * Everything except Next internals, the PWA files and static assets.
      */
-    "/((?!_next/static|_next/image|favicon.ico|icon.png|manifest.webmanifest|sw.js|icons/).*)",
+    "/((?!_next/static|_next/image|favicon.ico|icon.png|manifest.webmanifest|sw.js|offline.html|icons/).*)",
   ],
 };
