@@ -1,15 +1,23 @@
 import Link from "next/link";
-import { loadToday } from "@/lib/queries";
+import { DatabaseNotReadyError, loadToday } from "@/lib/queries";
 import { LeadRow } from "@/components/lead-row";
 import { Card, EmptyState, SectionHeading } from "@/components/ui";
 import { QuietHoursNotice } from "@/components/quiet-hours-notice";
+import { SetupNeeded } from "@/components/setup-needed";
 import { daysBetween } from "@/lib/time";
 
 // The whole point of this screen is that it is current.
 export const dynamic = "force-dynamic";
 
 export default async function TodayPage() {
-  const board = await loadToday();
+  let board: Awaited<ReturnType<typeof loadToday>>;
+  try {
+    board = await loadToday();
+  } catch (error) {
+    // A database with no tables is a setup step, not a crash.
+    if (error instanceof DatabaseNotReadyError) return <SetupNeeded detail={error.detail} />;
+    throw error;
+  }
   const total = board.blocked.length + board.overdue.length + board.due.length;
 
   return (

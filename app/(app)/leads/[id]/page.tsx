@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { loadLead } from "@/lib/queries";
+import { DatabaseNotReadyError, loadLead } from "@/lib/queries";
 import { formatPhone } from "@/lib/phone";
 import { STAGE_MEANINGS } from "@/lib/cadence";
 import { Card, StageChip } from "@/components/ui";
@@ -8,6 +8,7 @@ import { Composer } from "@/components/composer";
 import { ReplyBox } from "@/components/reply-box";
 import { LeadFields } from "@/components/lead-fields";
 import { Timeline } from "@/components/timeline";
+import { SetupNeeded } from "@/components/setup-needed";
 
 export const dynamic = "force-dynamic";
 
@@ -20,7 +21,13 @@ export default async function LeadPage({
 }) {
   const { id } = await params;
   const { added } = await searchParams;
-  const detail = await loadLead(id);
+  let detail: Awaited<ReturnType<typeof loadLead>>;
+  try {
+    detail = await loadLead(id);
+  } catch (error) {
+    if (error instanceof DatabaseNotReadyError) return <SetupNeeded detail={error.detail} />;
+    throw error;
+  }
   if (!detail) notFound();
 
   const { lead } = detail;

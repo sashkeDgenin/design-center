@@ -14,6 +14,52 @@ import { pickTemplate, renderTemplate } from "./templates";
 import { waLink } from "./phone";
 import { isQuietNow, type IsoDate } from "./time";
 
+/**
+ * Thrown when the database is reachable but has no tables yet: a fresh Neon project
+ * that has never been migrated. This is the single most likely first-run failure, and
+ * the raw Postgres error ("relation \"templates\" does not exist") tells a user
+ * nothing about what to do, so it is caught and turned into instructions instead.
+ */
+export class DatabaseNotReadyError extends Error {
+  constructor(readonly detail: string) {
+    super("The database has no tables yet.");
+    this.name = "DatabaseNotReadyError";
+  }
+}
+
+/**
+ * Postgres 42P01, undefined_table.
+ *
+ * Drizzle wraps driver errors, so the outer error says only "Failed query: select ..."
+ * and the 42P01 sits on its `cause`. The chain is walked rather than the top level
+ * inspected, which is the difference between catching this and not.
+ */
+function isMissingTable(error: unknown): boolean {
+  let current: unknown = error;
+  for (let depth = 0; current != null && depth < 5; depth += 1) {
+    if ((current as { code?: string }).code === "42P01") return true;
+    if (current instanceof Error && /relation ".+" does not exist/i.test(current.message)) {
+      return true;
+    }
+    current = (current as { cause?: unknown }).cause;
+  }
+  return false;
+}
+
+/** Runs a query, converting "no tables" into something the UI can act on. */
+async function needingTables<T>(run: () => Promise<T>): Promise<T> {
+  try {
+    return await run();
+  } catch (error) {
+    if (isMissingTable(error)) {
+      throw new DatabaseNotReadyError(
+        error instanceof Error ? error.message : String(error),
+      );
+    }
+    throw error;
+  }
+}
+
 export type ResolvedSettings = Pick<
   Settings,
   "cadence" | "quietHours" | "knowledgeBase" | "uiDirection"
@@ -41,7 +87,9 @@ export const getSettings = cache(async (): Promise<ResolvedSettings> => {
 });
 
 export const getTemplates = cache(async (): Promise<Template[]> => {
-  return getDb().select().from(templatesTable).orderBy(asc(templatesTable.touchNumber));
+  return needingTables(() =>
+    getDb().select().from(templatesTable).orderBy(asc(templatesTable.touchNumber)),
+  );
 });
 
 /** The message that would be sent next, already rendered and ready to open. */
@@ -119,11 +167,13 @@ export async function loadToday(): Promise<TodayBoard> {
   const allTemplates = await getTemplates();
   const today = todayFor(settings.quietHours);
 
-  const active = await db
-    .select()
-    .from(leads)
-    .where(and(eq(leads.archived, false), ne(leads.stage, "poopy")))
-    .orderBy(asc(leads.nextTouchAt));
+  const active = await needingTables(() =>
+    db
+      .select()
+      .from(leads)
+      .where(and(eq(leads.archived, false), ne(leads.stage, "poopy")))
+      .orderBy(asc(leads.nextTouchAt)),
+  );
 
   const logs = await interactionsByLead(active.map((l) => l.id));
 
@@ -192,7 +242,9 @@ export async function loadLead(id: string): Promise<LeadDetail | null> {
   const settings = await getSettings();
   const allTemplates = await getTemplates();
 
-  const [lead] = await db.select().from(leads).where(eq(leads.id, id)).limit(1);
+  const [lead] = await needingTables(() =>
+    db.select().from(leads).where(eq(leads.id, id)).limit(1),
+  );
   if (!lead) return null;
 
   const timeline = await db
