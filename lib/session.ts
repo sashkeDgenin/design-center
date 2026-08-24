@@ -11,7 +11,7 @@ const MAX_AGE_SECONDS = 60 * 60 * 24 * 90; // a phone you unlock daily, not a ba
  */
 function secret(): string {
   const value = process.env.SESSION_SECRET;
-  if (!value) throw new Error("SESSION_SECRET is not set. Copy .env.example to .env.");
+  if (!value) throw new Error("SESSION_SECRET is not set. Put it in .env.local.");
   return value;
 }
 
@@ -60,7 +60,7 @@ export async function verifyToken(token: string | undefined, now: number = Date.
 
 export function checkPasscode(input: string): boolean {
   const expected = process.env.APP_PASSCODE;
-  if (!expected) throw new Error("APP_PASSCODE is not set. Copy .env.example to .env.");
+  if (!expected) throw new Error("APP_PASSCODE is not set. Put it in .env.local.");
   return safeEqual(input.trim(), expected);
 }
 

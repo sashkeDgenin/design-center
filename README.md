@@ -45,7 +45,7 @@ Hebrew and Russian survive a double-click into Excel.
 ## Running it
 
 ```bash
-cp .env.example .env      # then fill in all three values
+cp .env.example .env.local   # then fill in the values
 npm install
 npm run db:generate       # only after changing db/schema.ts
 npm run db:migrate
@@ -66,6 +66,12 @@ by switching "Connection pooling" off in the same modal. On a plain local Postgr
 there is only one URL and the variable can stay blank. If migrations run against a
 pooled host with no direct URL configured, `db/url.ts` prints a warning rather than
 failing silently.
+
+Secrets go in **`.env.local`**, which is gitignored. Next.js reads that file
+natively, and `db/env.ts` makes the command-line scripts read it too, in the same
+precedence Next uses: `.env.local` first, `.env` filling any gaps. Without that the
+scripts would read only `.env`, so a value put in `.env.local` would work in
+`npm run dev` and then fail in `npm run db:migrate`.
 
 `npm test` runs the cadence, quiet-hours, phone and template unit tests.
 

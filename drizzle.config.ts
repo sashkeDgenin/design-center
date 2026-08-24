@@ -1,4 +1,4 @@
-import "dotenv/config";
+import "./db/env";
 import { defineConfig } from "drizzle-kit";
 import { migrationUrl } from "./db/url";
 
