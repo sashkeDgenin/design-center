@@ -6,13 +6,18 @@ import { signIn } from "@/lib/actions";
 export function PasscodeForm({ next }: { next?: string }) {
   const [state, action, pending] = useActionState(signIn, null);
 
+  // The field is deliberately a plain password input with no inputMode="numeric".
+  // That attribute opened the phone's number pad and quietly pushed towards a
+  // four-digit code. Once this is on a public URL the passcode is the entire
+  // security model and nothing rate-limits guesses behind it, so the full keyboard
+  // is the right default. Safari offers to store it in the keychain, which means a
+  // long passcode is typed once and autofilled with Face ID after that.
   return (
     <form action={action} className="space-y-4">
       <input type="hidden" name="next" value={next ?? "/"} />
       <input
         name="passcode"
         type="password"
-        inputMode="numeric"
         autoComplete="current-password"
         autoFocus
         placeholder="Passcode"

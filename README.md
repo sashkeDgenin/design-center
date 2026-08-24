@@ -127,8 +127,26 @@ Neon Auth would only add tables nothing reads.
 
 ## Deploying
 
+### Pick a real passcode before going public
+
+Locally the passcode barely matters: nothing outside your machine can reach the app.
+On a public URL it is the only thing in front of the lead list, and **nothing rate
+limits guesses**, which is a deliberate reading of "do not over-build this" rather
+than an oversight. A four-digit code is 10,000 combinations and a script works
+through that in minutes.
+
+So the entropy has to come from the passcode itself. Something like
+`milano-grey-sofa-77` is far stronger than `4821` and no harder to live with: the
+field is a normal password input, so Safari offers to store it in the keychain and
+autofills it with Face ID after the first time.
+
+Use a different passcode in production from the one used in development.
+
+### Deploying
+
 Vercel, with the same environment variables set in the project. `SESSION_SECRET`
-must be a real random value:
+must be a real random value, and production should have its own rather than reusing
+the development one:
 
 ```bash
 node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
