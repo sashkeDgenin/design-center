@@ -45,6 +45,18 @@ Hebrew and Russian survive a double-click into Excel.
 ## Running it
 
 ```bash
+./scripts/setup.sh
+```
+
+That walks you through it: it opens the Neon console, tells you which button to
+press, takes the connection string and a passcode, generates the session secret
+itself, writes `.env.local`, then creates the tables and seeds the sample leads
+and reads them back to prove it worked. Safe to re-run, and it remembers what you
+already entered.
+
+By hand instead:
+
+```bash
 cp .env.example .env.local   # then fill in the values
 npm install
 npm run db:generate       # only after changing db/schema.ts
