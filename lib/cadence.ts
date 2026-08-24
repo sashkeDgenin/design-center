@@ -129,6 +129,21 @@ export const STAGE_MEANINGS: Record<Stage, string> = {
   poopy: "Dead. Record kept, reminders stopped.",
 };
 
+/**
+ * When a lead just captured on the shop floor becomes due: now.
+ *
+ * The interval ladder describes the wait *between* touches, so it cannot apply
+ * before the first one has gone out. Deriving a new lead's date from intervals[0]
+ * schedules it for tomorrow, which drops it off the Today screen the instant it is
+ * saved and reads, correctly, as the app having lost it.
+ *
+ * Late-evening captures are already handled: quiet hours stop the list surfacing
+ * after 20:00, and a capture on the rest day rolls to the next.
+ */
+export function firstTouchDate(quiet: QuietHoursSettings, from: IsoDate): IsoDate {
+  return rollOffRestDay(from, quiet.restDay);
+}
+
 /** Today, in the zone quiet hours are configured for. */
 export function today(quiet: QuietHoursSettings, now: Date = new Date()): IsoDate {
   return todayIn(quiet.timezone, now);

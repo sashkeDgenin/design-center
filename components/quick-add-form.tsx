@@ -79,7 +79,7 @@ export function QuickAddForm() {
         {pending ? "Saving..." : "Save lead"}
       </button>
       <p className="text-center text-xs text-ink-faint">
-        Saved as a Nudge, first follow-up scheduled for tomorrow.
+        Saved as a Nudge and put straight on today&rsquo;s list.
       </p>
     </form>
   );

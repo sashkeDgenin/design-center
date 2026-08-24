@@ -7,7 +7,12 @@ import { z } from "zod";
 import { getDb } from "@/db";
 import { interactions, leads, LANGUAGES, SOURCES, STAGES } from "@/db/schema";
 import type { Stage } from "@/db/schema";
-import { computeNextTouch, today as todayFor, unansweredTouches } from "./cadence";
+import {
+  computeNextTouch,
+  firstTouchDate,
+  today as todayFor,
+  unansweredTouches,
+} from "./cadence";
 import { normalizePhone } from "./phone";
 import { getSettings } from "./queries";
 import { checkPasscode, endSession, startSession } from "./session";
@@ -73,8 +78,9 @@ export async function createLead(_prev: unknown, formData: FormData): Promise<Ac
   try {
     const settings = await getSettings();
     const today = todayFor(settings.quietHours);
-    // A new lead is a fresh nudge, so the first interval applies immediately.
-    const cadence = computeNextTouch("nudge", 1, settings.cadence, settings.quietHours, today);
+    // Due now, not after the first interval. Nothing has been sent yet, so there is
+    // no wait to serve: someone just walked out and the first message is the point.
+    const firstTouch = firstTouchDate(settings.quietHours, today);
 
     const [row] = await getDb()
       .insert(leads)
@@ -85,7 +91,7 @@ export async function createLead(_prev: unknown, formData: FormData): Promise<Ac
         source: parsed.data.source,
         interest: parsed.data.interest,
         stage: "nudge",
-        nextTouchAt: cadence.nextTouchAt,
+        nextTouchAt: firstTouch,
       })
       .returning({ id: leads.id });
     id = row.id;

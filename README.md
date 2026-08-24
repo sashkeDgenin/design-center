@@ -144,6 +144,11 @@ question about the Asia/Jerusalem calendar rather than an instant. Date arithmet
 anchors at 12:00 UTC so a +1 day step never lands on the wrong day across a DST
 boundary.
 
+**A lead just captured is due today.** The interval ladder describes the wait
+*between* touches, so it cannot apply before the first one has gone out. Deriving a
+new lead's date from the first interval put it on tomorrow, which dropped it off the
+Today screen the instant it was saved and read, correctly, as the app having lost it.
+
 **The ladder.** Each stage has a list of intervals. After the first unanswered touch
 the first interval applies, after the second the second, and so on. A `nudge` walks
 +1, +3, +7, +14 and an `awaiting_photos` walks +1, +2, +4.

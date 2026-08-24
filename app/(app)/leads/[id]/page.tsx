@@ -40,7 +40,8 @@ export default async function LeadPage({
 
       {added ? (
         <p className="rounded-xl bg-whatsapp/10 px-3 py-2 text-sm font-medium text-whatsapp-dark">
-          Lead saved. Send the first message now, or leave it for tomorrow.
+          Lead saved and on today&rsquo;s list. Send the first message now, or find it
+          on Today when you get a minute.
         </p>
       ) : null}
 

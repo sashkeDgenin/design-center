@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { DEFAULT_CADENCE, DEFAULT_QUIET_HOURS as Q } from "@/db/defaults";
 import type { Interaction, Lead } from "@/db/schema";
-import { computeNextTouch, shouldAutoMove, unansweredTouches } from "./cadence";
+import { computeNextTouch, firstTouchDate, shouldAutoMove, unansweredTouches } from "./cadence";
 import { normalizePhone, waLink } from "./phone";
 import { renderTemplate, pickTemplate } from "./templates";
 import { addDays, dayOfWeek, isQuietNow, rollOffRestDay, todayIn } from "./time";
@@ -55,6 +55,16 @@ test("awaiting_photos walks +1, +2, +4", () => {
     (n) => computeNextTouch("awaiting_photos", n, C, Q, MON).nextTouchAt,
   );
   assert.deepEqual(days, ["2026-08-25", "2026-08-26", "2026-08-28"]);
+});
+
+test("a lead just captured is due today, not tomorrow", () => {
+  // The bug this guards: deriving a new lead's date from the ladder put it on
+  // tomorrow, so it vanished from Today the moment it was saved.
+  assert.equal(firstTouchDate(Q, MON), MON);
+  const beforeSaturday = "2026-08-29"; // a Saturday
+  assert.equal(firstTouchDate(Q, beforeSaturday), "2026-08-30", "a Saturday capture rolls to Sunday");
+  // And it must not be whatever the first nudge interval happens to be.
+  assert.notEqual(firstTouchDate(Q, MON), computeNextTouch("nudge", 1, C, Q, MON).nextTouchAt);
 });
 
 test("photos_in is always due today", () => {
