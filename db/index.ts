@@ -3,6 +3,7 @@ import { drizzle as drizzlePg, type NodePgDatabase } from "drizzle-orm/node-post
 import { neon } from "@neondatabase/serverless";
 import { Pool } from "pg";
 import * as schema from "./schema";
+import { runtimeUrl } from "./url";
 
 /**
  * Neon's serverless driver speaks HTTP to Neon and nothing else, so it cannot talk
@@ -13,16 +14,6 @@ function isNeonUrl(url: string): boolean {
   return /\.neon\.tech|neon\.build/.test(url);
 }
 
-function connectionString(): string {
-  const url = process.env.DATABASE_URL;
-  if (!url) {
-    throw new Error(
-      "DATABASE_URL is not set. Copy .env.example to .env and fill it in.",
-    );
-  }
-  return url;
-}
-
 /**
  * Both drivers expose the same Drizzle query builder; only the transport differs.
  * The union of their two instance types collapses Drizzle's `.returning()` overloads,
@@ -31,7 +22,7 @@ function connectionString(): string {
 type Database = NodePgDatabase<typeof schema>;
 
 function create(): Database {
-  const url = connectionString();
+  const url = runtimeUrl();
   if (isNeonUrl(url)) {
     return drizzleNeon({ client: neon(url), schema }) as unknown as Database;
   }

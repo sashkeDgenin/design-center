@@ -55,14 +55,40 @@ npm run dev
 
 `DATABASE_URL` picks the driver automatically: a `*.neon.tech` URL uses Neon's
 serverless HTTP driver, anything else uses node-postgres, so a plain local Postgres
-works for development without changing code. Migrations always run over TCP, which
-Neon also accepts.
+works for development without changing code.
+
+**Pooled vs direct.** Neon gives two connection strings for the same database. The
+pooled one (its host carries a `-pooler` suffix) is what the Connect modal shows by
+default and is right for request traffic. Migrations use `DATABASE_URL_UNPOOLED`
+when it is set, because the pooler runs PgBouncer in transaction mode, which has no
+session state, and schema changes can hang or fail through it. Get the direct string
+by switching "Connection pooling" off in the same modal. On a plain local Postgres
+there is only one URL and the variable can stay blank. If migrations run against a
+pooled host with no direct URL configured, `db/url.ts` prints a warning rather than
+failing silently.
 
 `npm test` runs the cadence, quiet-hours, phone and template unit tests.
 
+## Picking a Neon region
+
+**A Neon project's region cannot be changed after it is created**, so this is the one
+setup choice worth slowing down for. Pick the region closest to where the phone
+actually is, not the default: every screen in this app is a database round trip, and
+the whole point is capturing a lead in ten seconds while someone walks to the door.
+For a store in Israel that is AWS Europe (Frankfurt), `eu-central-1`, not a US region.
+
+If you deploy to Vercel, pin the functions to the matching region too, otherwise a
+request travels to a US function and back to a European database and gives away the
+latency the region choice just bought.
+
+Postgres version does not matter here: the schema is plain DDL (enums, `uuid`,
+`jsonb`, `timestamptz`, one unique index) and runs the same on 16 through 18. Leave
+Neon Auth off; this app authenticates with one passcode and has no user table, so
+Neon Auth would only add tables nothing reads.
+
 ## Deploying
 
-Vercel, with the same three environment variables set in the project. `SESSION_SECRET`
+Vercel, with the same environment variables set in the project. `SESSION_SECRET`
 must be a real random value:
 
 ```bash
