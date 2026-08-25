@@ -7,12 +7,14 @@
  * better in a showroom than a half-tested second one.
  */
 @theme {
-  --color-ink: #16181d;
-  --color-ink-soft: #5b6070;
+  /* Warm near-black rather than pure grey: under showroom lighting a cold
+     neutral reads as washed out, and this app is used standing in one. */
+  --color-ink: #14161b;
+  --color-ink-soft: #585e6e;
   --color-ink-faint: #8b90a0;
-  --color-page: #f5f6f8;
+  --color-page: #f4f5f8;
   --color-card: #ffffff;
-  --color-line: #e3e5ea;
+  --color-line: #e4e6ec;
 
   --color-brand: #2f5fe0;
   --color-brand-dark: #1e3fa8;
@@ -26,6 +28,11 @@
   --color-whatsapp-dark: #14803c;
 
   --radius-card: 14px;
+
+  /* One shadow vocabulary. Cards sit almost flat; only the things that float
+     off the page (the add button) get real depth. */
+  --shadow-card: 0 1px 2px rgb(20 22 27 / 4%), 0 1px 3px rgb(20 22 27 / 6%);
+  --shadow-float: 0 8px 24px rgb(20 22 27 / 18%), 0 2px 6px rgb(20 22 27 / 10%);
 }
 
 html,
@@ -59,6 +66,47 @@ input,
 select,
 textarea {
   font-size: 16px;
+}
+
+/*
+ * Nothing on this screen should feel like a web page. Long-pressing a lead row to
+ * get a text-selection handle, or a double-tap zooming the list, are both ways the
+ * browser gets in the way of a thumb moving fast.
+ */
+button,
+a,
+select,
+summary,
+[role="button"] {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+button,
+a {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* But never make actual content unselectable: a phone number sometimes needs copying. */
+p, span, li, td, textarea, input, code, pre, h1, h2, h3 {
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+/* A pressed control should say so immediately, before any network round trip. */
+@media (hover: none) {
+  button:active,
+  a:active {
+    opacity: 0.72;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
 input:focus-visible,

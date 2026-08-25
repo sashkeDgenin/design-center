@@ -12,35 +12,54 @@ up. Everything here serves that loop.
 4. One tap opens WhatsApp with that message typed to that person
 5. Paste their reply back in, and the thread stays alive
 
-## Status: build steps 1 to 5 are done
-
-The spec asks for steps 1 to 5 first, then a stop, so the app is usable before the
-rest is built. That is where this is.
-
-**Built and working**
+## Status: all eight build steps are done
 
 - Schema, Neon connection, seed data (8 leads across all six stages, 33 templates)
 - Passcode gate
 - Quick add, lead detail, interaction logging
 - `wa.me` deep-link composer with template rendering
 - Cadence engine and the Today screen
+- Pipeline board
+- Settings: templates, cadence, working hours, store notes, layout direction, export
+- AI reply helper
 
-**Not built yet, on purpose**
+Plus **push notifications**, which the spec did not ask for: one notification each
+morning naming the people who need chasing.
 
-- Pipeline board (step 6)
-- Settings screens for templates, cadence, quiet hours, knowledge base (step 7)
-- AI reply helper (step 8)
+## Notifications
 
-Two things that step 7 will eventually put a UI on already exist underneath, because
-the spec says they must not be hardcoded: **cadence intervals, quiet hours and the
-knowledge base live in the `settings` table**, and **templates live in the `templates`
-table**. Editing them today means a SQL update; step 7 only adds the screen. Nothing
-in `lib/` reads a hardcoded cadence value.
+Turned on from Settings. The browser issues a subscription, the server stores it, and
+a daily cron builds the same list the Today screen shows and pushes it.
 
-**JSON and CSV export ship now**, not in step 7, because the spec lists "export from
-day one" as a non-negotiable. `GET /api/export/json` returns everything including
-poopy and archived leads. `GET /api/export/csv` returns the lead table with a BOM so
-Hebrew and Russian survive a double-click into Excel.
+Android Chrome supports this in an ordinary browser tab. iPhone needs the app added
+to the home screen first, and iOS 16.4 or newer.
+
+Three things have to be configured or nothing arrives:
+
+- `NEXT_PUBLIC_VAPID_PUBLIC_KEY` and `VAPID_PRIVATE_KEY` (`npx web-push generate-vapid-keys`)
+- `CRON_SECRET`, or the daily job is refused. Without it the endpoint returns a message
+  saying exactly that rather than a bare 401, because a silent no-op here means the
+  notifications simply never arrive and nothing says why.
+- The cron itself, declared in `vercel.json`. Vercel's Hobby plan allows one run per
+  day and fires it anywhere inside the scheduled hour, so this is a morning digest
+  rather than a per-lead alert.
+
+**Settings has a "Send one now" button.** Notifications are the one feature you cannot
+check by looking at the screen, and finding out tomorrow morning that the keys were
+wrong is no way to find out.
+
+## The AI reply helper
+
+`POST /api/reply` reads the lead, the whole conversation and your store notes, and
+returns strict JSON. The key never reaches the browser.
+
+It is told never to invent a price, a discount, a delivery date or a stock level. When
+the answer is not in your store notes it refuses and names the missing fact, and the
+screen shows a **Needs you** banner instead of a suggestion. That refusal is the
+feature: a made-up delivery date sent to a real customer is worse than no suggestion.
+
+Without `ANTHROPIC_API_KEY` the button reports that the helper is off and everything
+else works unchanged.
 
 ## Running it
 

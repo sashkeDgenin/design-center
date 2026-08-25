@@ -36,7 +36,11 @@ export function Card({
     overdue: "border-amber-200 bg-overdue-bg",
   };
   return (
-    <div className={`rounded-[14px] border shadow-sm ${tones[tone]} ${className}`}>{children}</div>
+    <div
+      className={`rounded-[14px] border shadow-[var(--shadow-card)] ${tones[tone]} ${className}`}
+    >
+      {children}
+    </div>
   );
 }
 
@@ -80,7 +84,7 @@ export function EmptyState({
   action?: { href: string; label: string };
 }) {
   return (
-    <Card className="px-5 py-8 text-center">
+    <Card className="px-5 py-10 text-center">
       <p className="text-base font-semibold">{title}</p>
       {/* ltr for the same bidi reason as the Today footer: English copy, leading digits. */}
       <p dir="ltr" className="mx-auto mt-1 max-w-[34ch] text-sm text-ink-soft">

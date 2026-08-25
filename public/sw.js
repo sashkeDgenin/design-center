@@ -14,7 +14,7 @@
  * says so, rather than the browser's dinosaur.
  */
 
-const VERSION = "leaddesk-v1";
+const VERSION = "leaddesk-v2";
 const SHELL = `${VERSION}-shell`;
 const OFFLINE_URL = "/offline.html";
 
@@ -80,4 +80,50 @@ self.addEventListener("fetch", (event) => {
       fetch(request).catch(() => caches.match(OFFLINE_URL).then((hit) => hit ?? Response.error())),
     );
   }
+});
+
+/* ─── Notifications ──────────────────────────────────────────────────────────
+ * The push service wakes this worker even when the app is closed, which is the
+ * whole point: the phone should say who needs calling without being asked.
+ */
+
+self.addEventListener("push", (event) => {
+  let payload = { title: "LeadDesk", body: "You have leads to follow up.", url: "/" };
+  try {
+    if (event.data) payload = { ...payload, ...event.data.json() };
+  } catch {
+    // A push with no body, or a body that is not ours, still deserves a nudge
+    // rather than silence.
+  }
+
+  event.waitUntil(
+    self.registration.showNotification(payload.title, {
+      body: payload.body,
+      icon: "/icons/icon-192.png",
+      badge: "/icons/icon-192.png",
+      tag: payload.tag || "leaddesk",
+      renotify: true,
+      data: { url: payload.url || "/" },
+      // Standing on a shop floor, a silent notification is a missed one.
+      vibrate: [90, 60, 90],
+    }),
+  );
+});
+
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const target = new URL(event.notification.data?.url || "/", self.location.origin).href;
+
+  // Focus the app if it is already open rather than stacking another window.
+  event.waitUntil(
+    self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((clients) => {
+      for (const client of clients) {
+        if (client.url.startsWith(self.location.origin) && "focus" in client) {
+          client.navigate(target);
+          return client.focus();
+        }
+      }
+      return self.clients.openWindow(target);
+    }),
+  );
 });

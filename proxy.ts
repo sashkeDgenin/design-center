@@ -16,6 +16,11 @@ export async function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
+  // The cron endpoint is called by Vercel's scheduler, which has a bearer token and
+  // no session cookie. Sending it to the login screen would silently kill the daily
+  // notification, so it is excluded here and authenticates itself with CRON_SECRET.
+  if (pathname.startsWith("/api/cron/")) return NextResponse.next();
+
   if (!signedIn) {
     const url = new URL("/login", request.url);
     // Come back to where you were heading once the passcode is in.

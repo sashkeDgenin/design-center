@@ -13,19 +13,19 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           <Link href="/" className="text-lg font-bold tracking-tight">
             LeadDesk
           </Link>
-          <div className="ms-auto flex items-center gap-3">
-            <a
-              href="/api/export/json"
-              className="text-xs font-semibold text-ink-soft underline decoration-line underline-offset-2"
-            >
-              Export
-            </a>
+          <nav className="ms-auto flex items-center gap-3 text-xs font-semibold text-ink-soft">
+            <Link href="/pipeline" className="underline decoration-line underline-offset-2">
+              Pipeline
+            </Link>
+            <Link href="/settings" className="underline decoration-line underline-offset-2">
+              Settings
+            </Link>
             <form action={signOut}>
-              <button type="submit" className="text-xs font-semibold text-ink-soft underline decoration-line underline-offset-2">
+              <button type="submit" className="underline decoration-line underline-offset-2">
                 Lock
               </button>
             </form>
-          </div>
+          </nav>
         </div>
       </header>
 
@@ -40,7 +40,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         <div className="mx-auto flex max-w-lg justify-end px-4 pb-4">
           <Link
             href="/leads/new"
-            className="pointer-events-auto flex h-14 items-center justify-center gap-2 rounded-full bg-ink ps-5 pe-6 text-base font-semibold text-white shadow-lg shadow-ink/25 active:scale-[0.98]"
+            className="pointer-events-auto flex h-14 items-center justify-center gap-2 rounded-full bg-ink ps-5 pe-6 text-base font-semibold text-white shadow-[var(--shadow-float)] active:scale-[0.97]"
           >
             <span aria-hidden className="text-xl leading-none">+</span>
             Quick add

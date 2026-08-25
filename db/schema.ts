@@ -116,6 +116,26 @@ export const settings = pgTable("settings", {
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
+/**
+ * One row per browser that agreed to receive notifications.
+ *
+ * A push subscription is issued by the browser's own push service and belongs to
+ * that browser on that device, so switching phones or clearing site data produces a
+ * new one rather than updating the old. Dead ones are deleted when the push service
+ * reports them gone (HTTP 404 or 410).
+ */
+export const pushSubscriptions = pgTable("push_subscriptions", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  /** The push service URL. Unique per browser install, so it is the natural key. */
+  endpoint: text("endpoint").notNull().unique(),
+  p256dh: text("p256dh").notNull(),
+  auth: text("auth").notNull(),
+  /** Free text from the browser, only so a device is recognisable in Settings. */
+  label: text("label").notNull().default(""),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  lastSentAt: timestamp("last_sent_at", { withTimezone: true }),
+});
+
 export type StageCadence = {
   /**
    * Days to wait after each unanswered outbound touch. intervals[0] applies after
@@ -150,3 +170,4 @@ export type NewLead = typeof leads.$inferInsert;
 export type Interaction = typeof interactions.$inferSelect;
 export type Template = typeof templates.$inferSelect;
 export type Settings = typeof settings.$inferSelect;
+export type PushSubscription = typeof pushSubscriptions.$inferSelect;

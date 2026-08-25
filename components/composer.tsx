@@ -5,6 +5,7 @@ import Link from "next/link";
 import type { LeadDetail } from "@/lib/queries";
 import { Card } from "./ui";
 import { SendButton } from "./send-button";
+import { ReplyHelper } from "./reply-helper";
 
 /**
  * Picks the template for this stage, language and touch number, renders the
@@ -87,6 +88,16 @@ export function Composer({ detail }: { detail: LeadDetail }) {
       <p className="mt-2 text-center text-[11px] text-ink-faint">
         Logs the touch, then opens WhatsApp. You still press send yourself.
       </p>
+
+      <div className="mt-3 border-t border-line pt-3">
+        <ReplyHelper
+          leadId={lead.id}
+          onUse={(text) => {
+            setBody(text);
+            setEdited(true);
+          }}
+        />
+      </div>
 
       {detail.templatesForStage.length > 1 ? (
         <details className="mt-3 border-t border-line pt-2">
