@@ -70,6 +70,16 @@ export const leads = pgTable("leads", {
    * Null means no reminder is scheduled (only `poopy` leads should sit like that).
    */
   nextTouchAt: date("next_touch_at"),
+  /**
+   * The exact moment to buzz the phone about this lead, when a time was chosen.
+   *
+   * Separate from `next_touch_at`, which stays a plain date and drives the Today
+   * screen. Null means "no alarm": the lead still appears on Today on its date and
+   * still shows up in the morning digest, it just does not interrupt anything.
+   */
+  remindAt: timestamp("remind_at", { withTimezone: true }),
+  /** Set when the reminder has been pushed, so it fires once and not every sweep. */
+  remindedAt: timestamp("reminded_at", { withTimezone: true }),
   lastContactAt: timestamp("last_contact_at", { withTimezone: true }),
   touchCount: integer("touch_count").notNull().default(0),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),

@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import type { LeadDetail } from "@/lib/queries";
+import { timeIn } from "@/lib/time";
 import { LANGUAGES, SOURCES, STAGES } from "@/db/schema";
 import { STAGE_LABELS } from "@/lib/cadence";
 import { updateLead } from "@/lib/actions";
@@ -28,6 +29,8 @@ const LANGUAGE_LABELS: Record<(typeof LANGUAGES)[number], string> = {
  */
 export function LeadFields({ detail }: { detail: LeadDetail }) {
   const { lead } = detail;
+  // The stored instant, shown back as the wall-clock time that was typed.
+  const existingTime = lead.remindAt ? timeIn(detail.timezone, lead.remindAt) : "";
   const [pending, startTransition] = useTransition();
   const [feedback, setFeedback] = useState<{ ok: boolean; text: string } | null>(null);
 
@@ -68,17 +71,27 @@ export function LeadFields({ detail }: { detail: LeadDetail }) {
       <Field
         label="Next touch"
         hint={
-          lead.nextTouchAt
-            ? "Overrides the automatic date. One tap."
-            : "No reminder set. Pick a date to start chasing again."
+          lead.remindAt
+            ? `Your phone will buzz at ${existingTime}. Clear the time to turn that off.`
+            : "Add a time and your phone will buzz then. Leave it blank and this just shows up on the day."
         }
       >
-        <input
-          type="date"
-          defaultValue={lead.nextTouchAt ?? ""}
-          onChange={(e) => save({ nextTouchAt: e.target.value })}
-          className={inputClass}
-        />
+        <div className="grid grid-cols-[1fr_auto] gap-2">
+          <input
+            type="date"
+            defaultValue={lead.nextTouchAt ?? ""}
+            onChange={(e) => save({ nextTouchAt: e.target.value })}
+            className={inputClass}
+            aria-label="Next touch date"
+          />
+          <input
+            type="time"
+            defaultValue={existingTime}
+            onChange={(e) => save({ remindTime: e.target.value })}
+            className={`${inputClass} w-32 text-center`}
+            aria-label="Remind me at"
+          />
+        </div>
       </Field>
 
       <div className="grid grid-cols-2 gap-3">

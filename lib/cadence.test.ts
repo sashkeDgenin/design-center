@@ -5,7 +5,15 @@ import type { Interaction, Lead } from "@/db/schema";
 import { computeNextTouch, firstTouchDate, shouldAutoMove, unansweredTouches } from "./cadence";
 import { normalizePhone, waLink } from "./phone";
 import { renderTemplate, pickTemplate } from "./templates";
-import { addDays, dayOfWeek, isQuietNow, rollOffRestDay, todayIn } from "./time";
+import {
+  addDays,
+  dayOfWeek,
+  isQuietNow,
+  rollOffRestDay,
+  timeIn,
+  todayIn,
+  zonedTimeToUtc,
+} from "./time";
 
 const C = DEFAULT_CADENCE;
 // 2026-08-24 is a Monday. 2026-08-29 is a Saturday.
@@ -163,4 +171,24 @@ test("template lookup falls back down the ladder and then to Hebrew", () => {
   assert.equal(pickTemplate(all, "nudge", "ru", 2)?.body, "ru-1", "falls down the ladder");
   assert.equal(pickTemplate(all, "nudge", "en", 1)?.body, "he-1", "falls back to Hebrew");
   assert.equal(pickTemplate(all, "poopy", "he", 1), null, "no template is not a crash");
+});
+
+test("a wall-clock reminder time survives Israel's clock change", () => {
+  const TZ = "Asia/Jerusalem";
+  // Summer: Israel is UTC+3, so 14:30 local is 11:30 UTC.
+  const summer = zonedTimeToUtc("2026-08-30", "14:30", TZ);
+  assert.equal(summer.toISOString(), "2026-08-30T11:30:00.000Z");
+
+  // Winter, after DST ends on 2026-10-25: UTC+2, so 14:30 local is 12:30 UTC.
+  const winter = zonedTimeToUtc("2026-12-01", "14:30", TZ);
+  assert.equal(winter.toISOString(), "2026-12-01T12:30:00.000Z");
+
+  // The point of the whole exercise: both read back as the time that was typed.
+  assert.equal(timeIn(TZ, summer), "14:30");
+  assert.equal(timeIn(TZ, winter), "14:30");
+
+  // Round trip across the boundary day itself.
+  for (const date of ["2026-10-24", "2026-10-25", "2026-10-26"]) {
+    assert.equal(timeIn(TZ, zonedTimeToUtc(date, "09:00", TZ)), "09:00", `failed on ${date}`);
+  }
 });

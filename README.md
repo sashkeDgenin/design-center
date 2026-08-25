@@ -28,6 +28,41 @@ morning naming the people who need chasing.
 
 ## Notifications
 
+Two kinds, and they answer different questions.
+
+**The morning digest** says who needs chasing today. One push, around 09:00, from
+Vercel Cron.
+
+**Timed reminders** are per lead. Put a time next to a lead's next-touch date and the
+phone buzzes at that moment, naming that lead and linking straight to them. Leave the
+time blank and the lead behaves as before: it appears on Today on its date and in the
+digest, but interrupts nothing.
+
+A reminder fires once. `remind_at` is the moment, `reminded_at` is stamped when the
+push actually lands, and the stamp only happens on delivery, so a transient push
+failure retries on the next sweep rather than being swallowed. Reminders falling
+inside quiet hours or on the rest day are **held, not dropped**: they go out on the
+first sweep after the day opens. Nothing ever fires for a `poopy` lead.
+
+### The scheduler problem
+
+Timed reminders need something to call `/api/cron/due` often. Vercel's Hobby plan runs
+a cron **once a day**, so it cannot do this. Three ways round it:
+
+| Option | Cost | Precision |
+|---|---|---|
+| Vercel Pro | $20/month | per minute |
+| GitHub Actions (`.github/workflows/reminders.yml`) | free | 15 minutes, often 10-30 late |
+| A third-party pinger | usually free | per minute |
+
+The workflow in this repo is the free path. It needs a repository **secret**
+`CRON_SECRET` matching Vercel's, and a repository **variable** `APP_URL` set to the
+production domain. Two caveats worth knowing before relying on it: GitHub's scheduler
+drifts under load, and on a public repository it is **silently disabled after 60 days
+without repo activity**. If reminders stop for no reason, look at the Actions tab
+first.
+
+
 Turned on from Settings. The browser issues a subscription, the server stores it, and
 a daily cron builds the same list the Today screen shows and pushes it.
 

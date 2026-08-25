@@ -1,0 +1,54 @@
+# Fires LeadDesk's timed reminders.
+#
+# Vercel's Hobby plan runs a cron once a day, which is fine for the morning digest
+# and useless for "buzz me at 14:30". This workflow pings the sweep endpoint instead,
+# and the endpoint decides what is actually due.
+#
+# Two things to know about GitHub's scheduler:
+#   - It drifts. A 15 minute schedule commonly runs 10 to 30 minutes late under load,
+#     so treat reminders as "around then", not "on the minute".
+#   - On a public repository it is silently disabled after 60 days with no repo
+#     activity. If reminders stop arriving out of nowhere, check the Actions tab
+#     first: re-enabling it is one button.
+#
+# Needs one repository secret: CRON_SECRET, matching the value in Vercel.
+# Add it at Settings -> Secrets and variables -> Actions -> New repository secret.
+# Set APP_URL as a repository variable to your production domain.
+
+name: LeadDesk reminders
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  # So you can prove it works without waiting for the schedule.
+  workflow_dispatch:
+
+jobs:
+  sweep:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fire any reminders that are due
+        env:
+          APP_URL: ${{ vars.APP_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          if [ -z "$APP_URL" ]; then
+            echo "APP_URL repository variable is not set." >&2
+            echo "Set it to your production URL, e.g. https://your-app.vercel.app" >&2
+            exit 1
+          fi
+          if [ -z "$CRON_SECRET" ]; then
+            echo "CRON_SECRET repository secret is not set." >&2
+            echo "It has to match the CRON_SECRET in your Vercel project." >&2
+            exit 1
+          fi
+
+          response=$(curl --silent --show-error --fail-with-body \
+            --max-time 30 \
+            --header "authorization: Bearer $CRON_SECRET" \
+            "$APP_URL/api/cron/due")
+
+          echo "$response"
+
+          # A held sweep (quiet hours) and a sweep with nothing due are both success.
+          echo "$response" | grep -q '"error"' && exit 1 || exit 0

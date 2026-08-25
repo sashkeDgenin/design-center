@@ -14,6 +14,7 @@ import {
   unansweredTouches,
 } from "./cadence";
 import { normalizePhone } from "./phone";
+import { zonedTimeToUtc } from "./time";
 import { getSettings } from "./queries";
 import { checkPasscode, endSession, startSession } from "./session";
 
@@ -114,6 +115,7 @@ const patch = z.object({
   notes: z.string().optional(),
   quotedPrice: z.string().optional(),
   nextTouchAt: z.string().optional(),
+  remindTime: z.string().optional(),
 });
 
 /**
@@ -188,6 +190,33 @@ export async function updateLead(leadId: string, formData: FormData): Promise<Ac
       const value = parsed.data.nextTouchAt.trim();
       values.nextTouchAt = value === "" ? null : value;
       if (value !== "") message = `Next touch set to ${value}.`;
+    }
+
+    /*
+     * The optional alarm. A time on its own is meaningless, so it always pairs with
+     * whichever date is in play: the one just submitted, the one just derived from a
+     * stage change, or the one already stored.
+     *
+     * Setting or moving it clears `remindedAt`, otherwise a reminder that already
+     * fired would never fire again at its new time.
+     */
+    if (parsed.data.remindTime !== undefined) {
+      const time = parsed.data.remindTime.trim();
+      const date =
+        (values.nextTouchAt as string | null | undefined) ?? current.nextTouchAt ?? null;
+
+      if (time === "" || date === null) {
+        values.remindAt = null;
+        values.remindedAt = null;
+        if (time === "" && parsed.data.nextTouchAt === undefined) {
+          message = "Alarm off. This lead still shows up on its day.";
+        }
+      } else {
+        const at = zonedTimeToUtc(date, time, settings.quietHours.timezone);
+        values.remindAt = at;
+        values.remindedAt = null;
+        message = `Alarm set for ${date} at ${time}.`;
+      }
     }
 
     if (Object.keys(values).length === 0) return { ok: true };

@@ -234,6 +234,7 @@ export async function loadToday(): Promise<TodayBoard> {
 export type LeadDetail = LeadCard & {
   timeline: Interaction[];
   today: IsoDate;
+  timezone: string;
   templatesForStage: Template[];
 };
 
@@ -263,6 +264,7 @@ export async function loadLead(id: string): Promise<LeadDetail | null> {
     lastInboundAt: lastInbound?.createdAt ?? null,
     timeline,
     today: todayFor(settings.quietHours),
+    timezone: settings.quietHours.timezone,
     templatesForStage: allTemplates.filter((t) => t.stage === lead.stage),
   };
 }

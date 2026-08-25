@@ -97,3 +97,59 @@ export function relativeDays(from: Date | null, today: IsoDate, timezone: string
   if (diff === 1) return "yesterday";
   return `${diff} days ago`;
 }
+
+/**
+ * How far ahead of UTC a zone is at a given instant, in milliseconds.
+ *
+ * Israel moves between +02:00 and +03:00, so this cannot be a constant.
+ */
+function zoneOffsetMs(at: Date, timezone: string): number {
+  const parts = Object.fromEntries(
+    new Intl.DateTimeFormat("en-US", {
+      timeZone: timezone,
+      hour12: false,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+    })
+      .formatToParts(at)
+      .map((p) => [p.type, p.value]),
+  ) as Record<string, string>;
+
+  const asIfUtc = Date.UTC(
+    Number(parts.year),
+    Number(parts.month) - 1,
+    Number(parts.day),
+    Number(parts.hour) % 24,
+    Number(parts.minute),
+    Number(parts.second),
+  );
+  return asIfUtc - at.getTime();
+}
+
+/**
+ * Turns a wall-clock date and time in a zone into the actual instant it happens.
+ *
+ * "14:30 on the 30th" means 14:30 where the shop is, which is a different instant
+ * in summer than in winter. The offset is applied twice because the first guess can
+ * land on the wrong side of a clock change, and the second pass settles it.
+ */
+export function zonedTimeToUtc(date: IsoDate, time: string, timezone: string): Date {
+  const naive = new Date(`${date}T${time.length === 5 ? time : "09:00"}:00Z`);
+  let instant = new Date(naive.getTime() - zoneOffsetMs(naive, timezone));
+  instant = new Date(naive.getTime() - zoneOffsetMs(instant, timezone));
+  return instant;
+}
+
+/** The wall-clock "HH:MM" an instant corresponds to in a zone. */
+export function timeIn(timezone: string, at: Date): string {
+  return new Intl.DateTimeFormat("en-GB", {
+    timeZone: timezone,
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).format(at);
+}
